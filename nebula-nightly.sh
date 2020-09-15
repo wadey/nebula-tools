@@ -4,7 +4,12 @@ set -e
 FILE="nebula-$(uname | tr '[:upper:]' '[:lower:]')-amd64.tar.gz"
 BINDIR="/usr/local/bin"
 
-CURRENT="v$($BINDIR/nebula -version | cut -d' ' -f2)"
+if [ -f "$BINDIR/nebula" ]
+then
+    CURRENT="v$($BINDIR/nebula -version | cut -d' ' -f2)"
+else
+    CURRENT=""
+fi
 
 TEMPDIR="$(mktemp -d)"
 trap 'rm -rf "$TEMPDIR"' exit
@@ -19,7 +24,12 @@ then
     exit 0
 fi
 
-echo "Upgrading from $CURRENT -> $LATEST"
+if [ -z "$CURRENT" ]
+then
+    echo "Installing $LATEST"
+else
+    echo "Upgrading from $CURRENT -> $LATEST"
+fi
 
 URL="$(jq -r '.assets[] | select(.name == "'"$FILE"'").browser_download_url' latest.json)"
 
