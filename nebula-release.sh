@@ -36,7 +36,6 @@ URL="$(jq -r '.assets[] | select(.name == "'"$FILE"'").browser_download_url' lat
 curl -L -o "$FILE" "$URL"
 tar -zxf "$FILE"
 
-sudo mv nebula /usr/local/bin
-sudo mv nebula-cert /usr/local/bin
+sudo install nebula nebula-cert "$BINDIR"
 
 "$BINDIR/nebula" -version
