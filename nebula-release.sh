@@ -1,7 +1,12 @@
 #!/bin/bash
 set -e
 
-FILE="nebula-$(uname | tr '[:upper:]' '[:lower:]')-amd64.tar.gz"
+case "$(uname -m)" in
+    aarch64) ARCH="arm64" ;;
+    x86_64)  ARCH="amd64" ;;
+esac
+
+FILE="nebula-$(uname | tr '[:upper:]' '[:lower:]')-$ARCH.tar.gz"
 BINDIR="/usr/local/bin"
 
 if [ -f "$BINDIR/nebula" ]
