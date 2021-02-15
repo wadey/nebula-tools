@@ -1,0 +1,50 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+#/ Usage: op-nebula-cert <name> <mode>
+#/   Runs nebula-cert with a ca.key stored in 1password
+#/
+#/  Modes:
+#/    ca <flags>: create a self signed certificate authority (-name not needed)
+#/    sign <flags>: create and sign a certificate (-ca-key not needed)
+
+usage() {
+    if [ ! -z "$2" ]; then
+        >&2 echo "$2\n"
+    fi
+
+    grep "^#/" "$0" | cut -c"4-" >&2
+    exit "$1"
+}
+
+[ "$1" ] || usage 1
+NAME="$1"
+shift
+
+CMD="$1"
+shift
+
+case "$CMD" in
+    ca)
+        if op get document "Nebula $NAME" >/dev/null 2>&1
+        then
+            >&2 echo "Document already exists in 1password: Nebula $NAME"
+            exit 1
+        fi
+
+        # TODO make it possible for the private key to never hit disk directly
+        #  Maybe if we allow -ca-key - to send to stdout?
+        nebula-cert ca -name "$NAME" "$@"
+        op create document ca.key --title "Nebula $NAME"
+        rm ca.key
+        ;;
+
+    sign)
+        op get document "Nebula $NAME" | nebula-cert sign -ca-key /dev/stdin "$@"
+        ;;
+
+    *)
+        usage 1
+        ;;
+esac
